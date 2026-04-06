@@ -30,6 +30,7 @@ void putch(char ch) {
 }*/
 #define UART_BASE 0x10000000L
 #define UART_TX   0
+#define UART_RX   0
 #define UART_LSR  5
 #define UART_LSR_THRE   0x20    // 发送保持寄存器空
 // CSR寄存器地址定义
@@ -48,6 +49,17 @@ void halt(int code) {
 
 #define UART_DIV   0
 #define UART_LCR   3
+
+#define IS_UART_RECEIVE_READY()   ((*(volatile uint8_t*)(UART_BASE + UART_LSR))&0b00000001)
+
+char get_data() {
+  if (IS_UART_RECEIVE_READY()) {
+    return *(volatile uint8_t*)(UART_BASE + UART_RX);
+  } else {
+    return 0xff;
+  }
+}
+
 void set_div2() {
   *(volatile char *)(UART_BASE + UART_LCR) = *(volatile char *)(UART_BASE + UART_LCR) | 0x80;
   *(volatile char *)(UART_BASE + UART_DIV) = 20;
