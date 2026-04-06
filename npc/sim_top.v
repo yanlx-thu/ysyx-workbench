@@ -74,10 +74,7 @@ module sram #(
     wire [19:0] wr_base = {awaddr[31:2], 2'b00} - MEM_BASE;  // 低2位清零，字对齐
 
     wire write_uart;
-    wire read_clint_low,read_clint_high;
     assign write_uart = (awaddr==32'ha00003f8);
-    assign read_clint_low = (araddr==32'h02000048);
-    assign read_clint_high = (araddr==32'h0200004c);
 
     // ============ AR 通道 ============
     always@(posedge clk, negedge rst_n) begin
@@ -113,36 +110,19 @@ module sram #(
             rdata_counter <= 0;
             flag_rdata <= 0;
             rlast_o <= 0;
-            r_delay <= LFSR;
         end
         else begin
             if(flag_raddr == 1) flag_rdata <= 1;
             else if(flag_rdata == 1) begin
-                if(rdata_counter == r_delay) begin
-                    rdata_counter <= 0;
-                    if (read_clint_low) begin
-                        sim_time_us = $time / 1000;
-                        rdata_o <= sim_time_us[31:0];  // 
-                    end else if (read_clint_high) begin
-                        sim_time_us = $time / 1000;
-                        rdata_o <= sim_time_us[63:32];       // 
-                    end else begin
-                    // ==== 替换 pmem_read：小端序拼接4字节 ====
-                        rdata_o <= {mem[rd_base+3], mem[rd_base+2],
-                                    mem[rd_base+1], mem[rd_base+0]};
-                    end
-                    rresp_o <= 2'b00;
-                    rlast_o <= 1;
-                    rvalid_o <= 1;
-                    flag_rdata <= 0;
-                    r_delay <= LFSR;
-                end
-                else begin
-                    rdata_counter <= rdata_counter + 1;
-                    rresp_o <= 2'b10;
-                    rlast_o <= 0;
-                    rvalid_o <= 0;
-                end
+                // ==== 替换 pmem_read：小端序拼接4字节 ====
+                rdata_o <= {mem[rd_base+3], mem[rd_base+2],
+                            mem[rd_base+1], mem[rd_base+0]};
+
+                rresp_o <= 2'b00;
+                rlast_o <= 1;
+                rvalid_o <= 1;
+                flag_rdata <= 0;
+                
             end
             else begin
                 rvalid_o <= 0;
@@ -214,7 +194,6 @@ module sram #(
         if(rst_n == 0) begin
             bresp_o <= 2'b10;
             bvalid_o <= 0;
-            w_delay <= LFSR;
             wdata_counter <= 0;
         end
         else begin 
@@ -222,28 +201,21 @@ module sram #(
             if(flag_wdata == 1) write_box[1] <= 1;
 
             if(write_box == 2'b11) begin
-                if(wdata_counter == w_delay) begin
-                    wdata_counter <= 0;
-                    // ==== 替换 pmem_write：按 wstrb 逐字节写入 ====
-                    if(write_uart) begin
-                        $write("%c", wdata[7:0]);
-                        //$fflush();
-                    end
-                    else begin
-                        if(wstrb[0]) mem[wr_base+0] <= wdata[ 7: 0];
-                        if(wstrb[1]) mem[wr_base+1] <= wdata[15: 8];
-                        if(wstrb[2]) mem[wr_base+2] <= wdata[23:16];
-                        if(wstrb[3]) mem[wr_base+3] <= wdata[31:24];
-                    end
-                    bresp_o <= 0;
-                    bvalid_o <= 1;
-                    write_box <= 0;
-                    w_delay <= LFSR;
-                end else begin
-                    wdata_counter <= wdata_counter + 1;
-                    bresp_o <= 2'b10;
-                    bvalid_o <= 0;
+                // ==== 替换 pmem_write：按 wstrb 逐字节写入 ====
+                if(write_uart) begin
+                    $write("%c", wdata[7:0]);
+                    //$fflush();
                 end
+                else begin
+                    if(wstrb[0]) mem[wr_base+0] <= wdata[ 7: 0];
+                    if(wstrb[1]) mem[wr_base+1] <= wdata[15: 8];
+                    if(wstrb[2]) mem[wr_base+2] <= wdata[23:16];
+                    if(wstrb[3]) mem[wr_base+3] <= wdata[31:24];
+                end
+                bresp_o <= 0;
+                bvalid_o <= 1;
+                write_box <= 0;
+                
             end else begin
                 bresp_o <= 2'b10;
                 bvalid_o <= 0;
@@ -258,14 +230,7 @@ module sram #(
         $readmemh("mem.hex", mem);
     end
     
-    // ============ LFSR 随机延迟 ============
-    assign lfsr_in = LFSR[4] ^ LFSR[3] ^ LFSR[2] ^ LFSR[1] ^ LFSR[0];
-    always@(posedge clk, negedge rst_n) begin
-        if(rst_n == 0) LFSR <= 5'b00001;
-        else begin
-            LFSR <= {lfsr_in,LFSR[4:1]};
-        end
-    end
+   
 
 endmodule
 
