@@ -1329,6 +1329,7 @@ always @(posedge clk or posedge reset) begin
 
         // fencei: invalidate all lines (only valid bits, not tag/data)
         if (fencei) begin
+            state <= S_IDLE;
             for (i = 0; i < NUM_BLOCKS; i = i + 1)
                 valid_array[i] <= 1'b0;
         end
@@ -1601,7 +1602,7 @@ module ysyx_25050137_idu(
     );
 
     
-
+    reg flag_fencei;
     always @(*) begin
         case(current_state)
             S_IDLE: begin
@@ -1643,8 +1644,10 @@ module ysyx_25050137_idu(
             else begin
                 current_state <= next_state;
 
-                if (inst == 32'h0000100f)
+                if (inst == 32'h0000100f && flag_fencei==0) begin
                     fencei <= 1;
+                    flag_fencei <= 1;
+                end
                 else
                     fencei <= 0;
 
@@ -1655,6 +1658,7 @@ module ysyx_25050137_idu(
 
                 if (current_state == S_IDLE) begin
                     idu_valid_o <= 0;
+                    
                     if (idu_valid_i == 1 && idu_ready_o == 1) begin
                         pc <= pc_i;
                         inst <= inst_i;
@@ -1768,7 +1772,7 @@ reg init;
 assign araddr_o   = pc_fetch;
 //assign arvalid_o  = (state == S_ADDR);
 assign arvalid_o = (state === S_ADDR);
-assign rready_o   = (state === S_DATA) || (state === S_FLUSH);
+assign rready_o   = (state === S_ADDR) || (state === S_DATA) || (state === S_FLUSH);
 assign ifu_valid_o = (state === S_OUT);
 
 // reset_o: pulse high for one cycle when ctrl_hazard detected
@@ -1790,9 +1794,7 @@ always @(posedge clk or posedge reset) begin
     end else begin
         if(fencei==1) begin
             state      <= S_ADDR;
-            pc_fetch   <= `ysyx_25050137_PC_INIT;
-            pc_o       <= `ysyx_25050137_PC_INIT;
-            inst_o     <= {`ysyx_25050137_INST_WIDTH{1'b0}};
+            pc_fetch <= pc_fetch + 4;
             flush_pend <= 1'b0;
         end
         else begin
@@ -3814,13 +3816,14 @@ module ysyx_25050137
     end
 `endif 
 
-//`ifdef __ICARUS__
-//    always@(*) begin       
-//        if(inst_ifu_to_idu == 32'h00100073) begin
- //           //ebreak();
- //           $finish;
-  //      end
-  //  end
-//`endif 
+`ifdef __ICARUS__
+    always@(*) begin       
+        if(inst_ifu_to_idu == 32'h00100073) begin
+           //ebreak();
+
+           $finish;
+      end
+    end
+`endif 
     
 endmodule

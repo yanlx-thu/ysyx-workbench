@@ -12,7 +12,6 @@ AM_SRCS := riscv/ysyxsoc/start.S \
 
 
 CFLAGS    += -fdata-sections -ffunction-sections
-CFLAGS += -O3  # 优化代码大小
 LDFLAGS   += -T $(AM_HOME)/scripts/linkersoc.ld 
 LDFLAGS   += --gc-sections -e _start 
 NPCFLAGS  += -h 

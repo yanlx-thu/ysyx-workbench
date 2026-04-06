@@ -14,6 +14,8 @@ print("mainargs={0}".format(mainargs))
 
 fp = open(bin, 'r+b')
 data = fp.read()
+print("Looking for: [{0}]".format(placeholder))
+print("Placeholder length: {0}".format(len(placeholder)))
 idx = data.find(str.encode(placeholder))
 if idx == -1:
     print("Error: placeholder not found!\n")
