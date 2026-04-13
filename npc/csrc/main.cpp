@@ -550,19 +550,26 @@ static void trace_and_difftest() {
 
 }
 #ifdef NVBOARD_ON
-#include "nvboard.h"
-static TOP_NAME dut;
-void nvboard_bind_all_pins(TOP_NAME* top);
+  #include "nvboard.h"
+  static TOP_NAME dut;
+  //void nvboard_bind_all_pins(TOP_NAME* top);
+  #ifdef WAVE_ON
+    #include "verilated_vcd_c.h" //可选，如果要导出vcd则需要加上
+    VerilatedContext* contextp = new VerilatedContext;
+    //VysyxSoCFull* top = new VysyxSoCFull{contextp};
+    //VerilatedFstC *tfp = new VerilatedFstC; // 创建一个波形文件指针
+    VerilatedVcdC* tfp = new VerilatedVcdC; //初始化VCD对象指针
+  #endif
 
 #else
-#include "verilated.h"
-//#include "verilated_vcd_c.h" //可选，如果要导出vcd则需要加上
-#include "verilated_fst_c.h"            //波形文件所需的头文件
-VerilatedContext* contextp = new VerilatedContext;
-VysyxSoCFull* top = new VysyxSoCFull{contextp};
-//VerilatedVcdC* tfp = new VerilatedVcdC; //初始化VCD对象指针
+  #include "verilated.h"
+  //#include "verilated_vcd_c.h" //可选，如果要导出vcd则需要加上
+  #include "verilated_fst_c.h"            //波形文件所需的头文件
+  VerilatedContext* contextp = new VerilatedContext;
+  VysyxSoCFull* top = new VysyxSoCFull{contextp};
+  //VerilatedVcdC* tfp = new VerilatedVcdC; //初始化VCD对象指针
 
-VerilatedFstC *tfp = new VerilatedFstC; // 创建一个波形文件指针
+  VerilatedFstC *tfp = new VerilatedFstC; // 创建一个波形文件指针
 #endif
 
 void cpu_exec(uint64_t num) {
@@ -591,8 +598,7 @@ void cpu_exec(uint64_t num) {
     dut.clock = 1; dut.eval();
     counter++;
     //trace_and_difftest();
-    // tfp->dump(contextp->time()); //dump wave
-    //contextp->timeInc(1); //推动仿真时间
+    
 #else
     top->clock = 0; top->eval();
     top->clock = 1; top->eval();
@@ -610,7 +616,10 @@ void cpu_exec(uint64_t num) {
 
 
 int main(int argc, char** argv) {
+  
+  //Verilated::traceEverOn(true);
 #ifdef NVBOARD_ON
+  
   //nvboard_bind_all_pins(&dut);
   nvboard_bind_pin(&dut.externalPins_gpio_out,16,LD15, LD14, LD13, LD12, LD11, LD10, LD9, LD8, LD7, LD6, LD5, LD4, LD3, LD2, LD1, LD0);
   nvboard_bind_pin(&dut.externalPins_gpio_in,16,SW15, SW14, SW13, SW12, SW11, SW10, SW9, SW8, SW7, SW6, SW5, SW4, SW3, SW2, SW1, SW0);
@@ -624,17 +633,20 @@ int main(int argc, char** argv) {
   nvboard_bind_pin(&dut.externalPins_gpio_seg_7,8,SEG7A, SEG7B, SEG7C, SEG7D, SEG7E, SEG7F, SEG7G, DEC7P);
   nvboard_bind_pin(&dut.externalPins_uart_tx,1,UART_TX);
   nvboard_bind_pin(&dut.externalPins_uart_rx,1,UART_RX);
-  nvboard_bind_pin(&dut.externalPins_ps2_clk,1,PS2_CLK);
-  nvboard_bind_pin(&dut.externalPins_ps2_data,1,PS2_DAT);
-  nvboard_bind_pin(&dut.externalPins_vga_r,8,VGA_R7, VGA_R6, VGA_R5, VGA_R4, VGA_R3, VGA_R2, VGA_R1, VGA_R0);
-  nvboard_bind_pin(&dut.externalPins_vga_g,8,VGA_G7, VGA_G6, VGA_G5, VGA_G4, VGA_G3, VGA_G2, VGA_G1, VGA_G0);
-  nvboard_bind_pin(&dut.externalPins_vga_b,8,VGA_B7, VGA_B6, VGA_B5, VGA_B4, VGA_B3, VGA_B2, VGA_B1, VGA_B0);
-  nvboard_bind_pin(&dut.externalPins_vga_hsync,1,VGA_HSYNC);
-  nvboard_bind_pin(&dut.externalPins_vga_vsync,1,VGA_VSYNC);
-  nvboard_bind_pin(&dut.externalPins_vga_valid,1,VGA_BLANK_N);
+  //nvboard_bind_pin(&dut.externalPins_ps2_clk,1,PS2_CLK);
+  //nvboard_bind_pin(&dut.externalPins_ps2_data,1,PS2_DAT);
+  //nvboard_bind_pin(&dut.externalPins_vga_r,8,VGA_R7, VGA_R6, VGA_R5, VGA_R4, VGA_R3, VGA_R2, VGA_R1, VGA_R0);
+  //nvboard_bind_pin(&dut.externalPins_vga_g,8,VGA_G7, VGA_G6, VGA_G5, VGA_G4, VGA_G3, VGA_G2, VGA_G1, VGA_G0);
+  //nvboard_bind_pin(&dut.externalPins_vga_b,8,VGA_B7, VGA_B6, VGA_B5, VGA_B4, VGA_B3, VGA_B2, VGA_B1, VGA_B0);
+  //nvboard_bind_pin(&dut.externalPins_vga_hsync,1,VGA_HSYNC);
+  //nvboard_bind_pin(&dut.externalPins_vga_vsync,1,VGA_VSYNC);
+  //nvboard_bind_pin(&dut.externalPins_vga_valid,1,VGA_BLANK_N);
   nvboard_init();
+  
+  
 #endif
   Verilated::commandArgs(argc, argv);
+  
   init_log("npc-log.txt");
   parse_args(argc, argv);
   long img_size = load_img();
@@ -649,15 +661,18 @@ int main(int argc, char** argv) {
 
 
 #ifdef NVBOARD_ON
-
+  
+  
   int n = 10;
   dut.reset = 1;
   while (n > 0) {
     nvboard_update();
     dut.clock = 0; dut.eval();
     dut.clock = 1; dut.eval();
-    //tfp->dump(contextp->time()); //dump wave
-    //contextp->timeInc(1); //推动仿真时间
+    #ifdef WAVE_ON
+    tfp->dump(contextp->time()); //dump wave
+    contextp->timeInc(1); //推动仿真时间
+    #endif
     n--;
   }
   dut.reset = 0;
@@ -665,9 +680,11 @@ int main(int argc, char** argv) {
   sdb_set_batch_mode();//批处理模式
   
   sdb_mainloop();
+
+  
+  
 #else 
   contextp->commandArgs(argc, argv);
-  
   #ifdef WAVE_ON
   contextp->traceEverOn(true); //打开追踪功能
   top->trace(tfp, 99); //
