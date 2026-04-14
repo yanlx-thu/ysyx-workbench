@@ -46,7 +46,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 		-Dysyx_25050137_PC_INIT="32'h30000000" \
 		+incdir+$(YSYX_DIR)/ysyxSoC/perip/uart16550/rtl \
 		+incdir+$(YSYX_DIR)/ysyxSoC/perip/spi/rtl \
-		--timescale "1ns/1ns" --no-timing --autoflush\
+		--timescale "1ns/1ns" --no-timing \
 		-CFLAGS "-mcmodel=medium" -LDFLAGS "-lreadline" \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN)) 
