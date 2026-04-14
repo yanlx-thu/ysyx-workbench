@@ -62,7 +62,7 @@ char get_data() {
 
 void set_div2() {
   *(volatile char *)(UART_BASE + UART_LCR) = *(volatile char *)(UART_BASE + UART_LCR) | 0x80;
-  *(volatile char *)(UART_BASE + UART_DIV) = 20;
+  *(volatile char *)(UART_BASE + UART_DIV) = 1;
   *(volatile char *)(UART_BASE + UART_LCR) = *(volatile char *)(UART_BASE + UART_LCR) & 0x7F;
 }
 
