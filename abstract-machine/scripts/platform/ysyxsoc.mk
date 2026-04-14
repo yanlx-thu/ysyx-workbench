@@ -30,4 +30,4 @@ image: $(IMAGE).elf
 
 
 run: insert-arg
-	$(MAKE) -C $(NPC_HOME) ISA=$(ISA) run ARGS="$('NPCFLAGS')" IMG=$(IMAGE).bin
+	$(MAKE) -C $(NPC_HOME) ISA=$(ISA) sim ARGS="$('NPCFLAGS')" IMG=$(IMAGE).bin

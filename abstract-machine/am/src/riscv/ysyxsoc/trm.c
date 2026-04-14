@@ -47,7 +47,8 @@ void halt(int code) {
   while (1);
 }
 
-#define UART_DIV   0
+#define UART_DIV0   0
+#define UART_DIV1   1
 #define UART_LCR   3
 
 #define IS_UART_RECEIVE_READY()   ((*(volatile uint8_t*)(UART_BASE + UART_LSR))&0b00000001)
@@ -62,7 +63,8 @@ char get_data() {
 
 void set_div2() {
   *(volatile char *)(UART_BASE + UART_LCR) = *(volatile char *)(UART_BASE + UART_LCR) | 0x80;
-  *(volatile char *)(UART_BASE + UART_DIV) = 1;
+  *(volatile char *)(UART_BASE + UART_DIV1) = 0;
+  *(volatile char *)(UART_BASE + UART_DIV0) = 1;
   *(volatile char *)(UART_BASE + UART_LCR) = *(volatile char *)(UART_BASE + UART_LCR) & 0x7F;
 }
 
