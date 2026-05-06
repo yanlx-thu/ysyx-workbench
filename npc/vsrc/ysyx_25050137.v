@@ -3,9 +3,11 @@
 `define ysyx_25050137_INST_WIDTH 32
 `define ysyx_25050137_REG_ADDR 5
 
-`ifndef ysyx_25050137_PC_INIT
-`define ysyx_25050137_PC_INIT 32'h80000000
-`endif
+`ifdef __ICARUS__
+    `define ysyx_25050137_PC_INIT 32'h80000000
+`else
+    `define ysyx_25050137_PC_INIT 32'h30000000
+`endif 
 
 `ifdef VERILATOR_SIM
     import "DPI-C" function void ebreak();
