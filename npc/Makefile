@@ -43,7 +43,6 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
 		+define+VERILATOR_SIM \
-		
 		+incdir+$(YSYX_DIR)/ysyxSoC/perip/uart16550/rtl \
 		+incdir+$(YSYX_DIR)/ysyxSoC/perip/spi/rtl \
 		--timescale "1ns/1ns" --no-timing \
