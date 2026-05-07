@@ -2346,7 +2346,7 @@ module ysyx_25050137_regfile #(parameter ADDR_WIDTH = 5, parameter DATA_WIDTH = 
   // mcause — ecall or CSR write
   always @(posedge clk) begin
     if (ecall)
-      csr_mcause <= regs[15];
+      csr_mcause <= 11;
     else if (wen_csr && waddr_csr == 2'd3)
       csr_mcause <= wdata_csr;
   end
